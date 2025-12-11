@@ -1,0 +1,36 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+main {
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    width: 100vw;
+    height: 100vh;
+    background-color: black;
+}
+
+aside {
+    width: 500px;
+    border: 1px solid black;
+    background-color: white;
+}
+
+.boton-aside {
+    height: 50px;
+    display: flex;
+    align-items: center;
+}
+
+.boton-aside img {
+    height: 50px;
+}
+
+#contenido {
+    width: 100%;
+    border: 1px solid black;
+    background-color: white;
+}
