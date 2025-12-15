@@ -9,6 +9,14 @@ const inyectados = {
 
 iniciarPagina()
 
+const buttonAbrirAside = document.getElementById("abrir-aside")
+buttonAbrirAside.addEventListener("click", e => {
+    e.preventDefault()
+    const aside = document.querySelector("aside")
+    if (aside.style.display == "block") aside.style.display = "none"
+    else aside.style.display = "block"
+})
+
 async function iniciarPagina() {
     await cargarContenido(window.location.hash.substring(1))
     window.addEventListener("hashchange", async () => {
@@ -20,11 +28,21 @@ async function cargarContenido(pagina) {
     limpiarShadow()
     limpiarPagina()
     if (pagina == "" || pagina == "#") pagina = "inicio"
-    const response = await fetch(`./views/${pagina}.html`)
+    const paramsURL = new URLSearchParams(pagina.split("?")[1])
+    const params = Object.fromEntries(paramsURL.entries())
+    const path = pagina.split("?")[0]
+    const response = await fetch(`./views/${path}.html`)
     const data = await response.text()
     const tmp = document.createElement("div")
     tmp.innerHTML = data
     const rootDiv = tmp.querySelector("div")
+
+    rootDiv.dataset.params = JSON.stringify(params)
+
+    rootDiv.style.width = "100%"
+    rootDiv.style.height = "100%"
+    rootDiv.style.boxSizing = "border-box"
+
     shadow.appendChild(rootDiv.cloneNode(true))
 
     tmp.querySelectorAll("script").forEach(async oldScript => {
@@ -39,12 +57,12 @@ async function cargarContenido(pagina) {
                 newScript.onload = () => resolve()
                 newScript.onerror = () => { console.error("Error cargando script: ", newScript.src); resolve() }
             })
-            document.body.appendChild(newScript)
+            shadow.appendChild(newScript)
             inyectados.scripts.push(newScript)
             await p
         } else {
             newScript.textContent = oldScript.textContent
-            document.body.appendChild(newScript)
+            shadow.appendChild(newScript)
             inyectados.scripts.push(newScript)
         }
     })
