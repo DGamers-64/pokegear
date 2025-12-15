@@ -1,0 +1,17 @@
+.bordes-pokegear {
+    border: 16px solid transparent;
+    border-image-source: url(./resources/img/bordes.png);
+    border-image-slice: 8;
+    border-image-repeat: round;
+    image-rendering: pixelated;
+}
+
+@media (max-width: 600px) {
+    .bordes-pokegear {
+        border: 8px solid transparent;
+        border-image-source: url(./resources/img/bordes.png);
+        border-image-slice: 8;
+        border-image-repeat: round;
+        image-rendering: pixelated;
+    }
+}
