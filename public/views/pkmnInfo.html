@@ -1,6 +1,6 @@
 <div>
     <div id="pkmnInfo">
-        <img>
+        <div id="imageContainer"><img></div>
         <h1></h1>
         <div id="tableContainer">
             <table></table>
@@ -15,7 +15,7 @@
         const pokemon = JSON.parse(shadow.querySelector("div").dataset.params).pokemon
         const pkmnInfCont = shadow.getElementById("pkmnInfo")
 
-        pkmnInfCont.querySelector("img").src = `./resources/img/sprites/${pokemon}.png`
+        shadow.getElementById("imageContainer").querySelector("img").src = `./resources/img/sprites/${pokemon}.png`
         pkmnInfCont.querySelector("h1").textContent = capitalize(pokemon)
     }
 
@@ -36,12 +36,18 @@
         padding: 1rem;
     }
 
-    img {
+    #imageContainer {
         grid-area: imagen;
-        width: 256px;
-        image-rendering: pixelated;
         border: 1px solid black;
         background-color: goldenrod;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    img {
+        width: 256px;
+        image-rendering: pixelated;
     }
 
     h1 {
@@ -56,5 +62,16 @@
         background-color: pink;
         border: 1px solid black;
         grid-area: lista;
+    }
+
+    @media (max-width: 600px) {
+        #pkmnInfo {
+            grid-template-areas: 
+            "imagen"
+            "nombre"
+            "lista";
+            grid-template-columns: 100%;
+            grid-template-rows: auto auto 1fr;
+        }
     }
 </style>
