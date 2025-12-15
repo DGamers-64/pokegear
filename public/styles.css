@@ -22,6 +22,7 @@ aside {
     border: 1px solid black;
     background-color: white;
     padding: .5rem;
+    display: block;
 }
 
 .boton-aside {
@@ -69,5 +70,6 @@ aside a {
 
     #contenido {
         width: 100%;
+        height: 100%;
     }
 }
