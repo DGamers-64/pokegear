@@ -2,26 +2,22 @@
     <div id="pkmnInfo">
         <div id="imageContainer" class="bordes-pokegear"><img></div>
         <div id="infoContainer">
-            <span id="nombre"></span>
+            <div>
+                <span id="nombre"></span>
+                <span id="n-pkdx"></span>
+            </div>
             <span id="ratio-captura"></span>
             <span id="ciclos"></span>
+            <div id="btns-navegacion">
+                <div class="btn-navegacion">
+                    <a id="anterior">←</a>
+                </div>
+                <div class="btn-navegacion">
+                    <a id="posterior">→</a>
+                </div>
+            </div>
         </div>
-        <div id="tableContainer">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Ruta</th>
-                        <th>Metodo</th>
-                        <th>Nivel</th>
-                        <th>Porcentaje</th>
-                        <th>Versión</th>
-                    </tr>
-                </thead>
-                <tbody>
-
-                </tbody>
-            </table>
-        </div>
+        <div id="tableContainer"></div>
     </div>
 </div>
 
@@ -33,28 +29,59 @@
         const pkmnInfCont = shadow.getElementById("pkmnInfo")
 
         shadow.getElementById("imageContainer").querySelector("img").src = `./resources/img/sprites/${pokemon}.png`
-        shadow.querySelector("#nombre").textContent = capitalize(pokemon)
+        shadow.getElementById("nombre").textContent = capitalize(pokemon)
 
-        const res = await fetch(`/api/localizacion?nombre=${pokemon}`)
-        const data = await res.json()
+        let res = await fetch(`/api/localizacion?nombre=${pokemon}`)
+        let data = await res.json()
+
+        let existenLocs = Object.values(data).some(e => Array.isArray(e) && e.length > 0)
+
+        if (existenLocs) {
+            shadow.getElementById("tableContainer").innerHTML = `<table>
+                <thead>
+                    <tr>
+                        <th>Ruta</th>
+                        <th>Método</th>
+                        <th>Nivel</th>
+                        <th>Porcentaje</th>
+                        <th>Versión</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>`
+        }
 
         const tbody = shadow.querySelector("tbody")
 
-        if (data.todo.length > 0) {
-            tbody.innerHTML += "<tr colspan='5'>TODO EL DÍA</tr>"
-            tbody.innerHTML += imprimirEncuentros(data.todo)
+        if (data.todo.length > 0) tbody.innerHTML += imprimirEncuentros(data.todo, "todo-dia")
+        if (data.morning.length > 0) tbody.innerHTML += imprimirEncuentros(data.morning, "morning")
+        if (data.day.length > 0) tbody.innerHTML += imprimirEncuentros(data.day, "day")
+        if (data.night.length > 0) tbody.innerHTML += imprimirEncuentros(data.night, "night")
+
+        res = await fetch(`/api/pokemon?nombre=${pokemon}`)
+        data = await res.json()
+
+        shadow.getElementById("n-pkdx").textContent = `#${data.n_pkdx}`
+        shadow.getElementById("ratio-captura").textContent = `RC: ${data.ratio_captura}`
+        shadow.getElementById("ciclos").textContent = `Ciclos: ${data.ciclos_eclosion}`
+
+        const btnAnterior = shadow.getElementById("anterior")
+        const btnPosterior = shadow.getElementById("posterior")
+
+        if (data.n_pkdx <= 1) btnAnterior.parentElement.classList.add("disabled")
+        else {
+            const resAnt = await fetch(`/api/pokemon?n_pkdx=${data.n_pkdx - 1}`)
+            const dataAnt = await resAnt.json()
+
+            btnAnterior.href = `#pkmnInfo?pokemon=${dataAnt.nombre}`
         }
-        if (data.morning.length > 0) {
-            tbody.innerHTML += "<tr colspan='5'>MAÑANA</tr>"
-            tbody.innerHTML += imprimirEncuentros(data.morning)
-        }
-        if (data.day.length > 0) {
-            tbody.innerHTML += "<tr colspan='5'>DIA</tr>"
-            tbody.innerHTML += imprimirEncuentros(data.day)
-        }
-        if (data.night.length > 0) {
-            tbody.innerHTML += "<tr colspan='5'>NOCHE</tr>"
-            tbody.innerHTML += imprimirEncuentros(data.night)
+        
+        if (data.n_pkdx >= 251) btnPosterior.parentElement.classList.add("disabled")
+        else {
+            const resPos = await fetch(`/api/pokemon?n_pkdx=${data.n_pkdx + 1}`)
+            const dataPos = await resPos.json()
+
+            btnPosterior.href = `#pkmnInfo?pokemon=${dataPos.nombre}`
         }
     }
 
@@ -62,10 +89,10 @@
         return str.charAt(0).toUpperCase() + str.substring(1)
     }
 
-    function imprimirEncuentros(lista) {
+    function imprimirEncuentros(lista, clase) {
         let texto = ""
         lista.forEach(e => {
-            texto += `<tr>
+            texto += `<tr class="${clase}">
                     <td>${e.ruta}</td>
                     <td>${e.metodo}</td>
                     <td>${e.nivel}</td>
@@ -106,10 +133,57 @@
     #infoContainer {
         margin: 0;
         grid-area: info;
+        display: flex;
+        flex-direction: column;
     }
 
     #nombre {
         font-size: 3em;
+    }
+
+    #n-pkdx {
+        font-size: 1.6em;
+        color: gray;
+    }
+
+    #ratio-captura, #ciclos {
+        font-size: 1.3em;
+        color: rgb(168, 168, 168);
+    }
+
+    #btns-navegacion {
+        margin-top: 1rem;
+        display: flex;
+        gap: .3rem;
+    }
+
+    .btn-navegacion {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: black;
+        width: 40px;
+        height: 40px;
+        font-size: 1.3em;
+        border: 1px solid black;
+        background-color: rgb(185, 185, 185);
+        font-weight: bold;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    .disabled {
+        background-color: gainsboro;
+    }
+
+    .disabled a {
+        color: rgb(170, 170, 170);
+    }
+
+    a {
+        text-decoration: none;
+        color: black;
     }
 
     #tableContainer {
@@ -122,7 +196,17 @@
         border-collapse: collapse;
     }
 
-        
+    th {
+        background-color: black;
+        color: white;
+        font-weight: normal;
+        text-align: center;
+    }
+
+    .todo-dia { background-color: lightgreen; }
+    .morning { background-color: lightyellow; }
+    .day { background-color: lightblue; }
+    .night { background-color: lightslategrey; }
 
     @media (max-width: 600px) {
         #pkmnInfo {
