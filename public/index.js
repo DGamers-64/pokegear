@@ -37,7 +37,7 @@ async function cargarContenido(pagina) {
     tmp.innerHTML = data
     const rootDiv = tmp.querySelector("div")
 
-    rootDiv.dataset.params = JSON.stringify(params)
+    window.params = params
 
     rootDiv.style.width = "100%"
     rootDiv.style.height = "100%"

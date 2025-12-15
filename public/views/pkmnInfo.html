@@ -12,7 +12,7 @@
     generarInfo()
 
     function generarInfo() {
-        const pokemon = JSON.parse(shadow.querySelector("div").dataset.params).pokemon
+        const pokemon = params.pokemon
         const pkmnInfCont = shadow.getElementById("pkmnInfo")
 
         shadow.getElementById("imageContainer").querySelector("img").src = `./resources/img/sprites/${pokemon}.png`
@@ -46,7 +46,7 @@
     }
 
     #imageContainer img {
-        width: 256px;
+        width: 192px;
         image-rendering: pixelated;
     }
 
