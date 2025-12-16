@@ -2,7 +2,23 @@ import Database from "better-sqlite3";
 
 export default function getLocalizaciones(req, res) {
     const db = new Database("./data/pokemon.sqlite", { readonly: true })
-    const localizaciones = db.prepare("SELECT r.nombre AS ruta, l.version, l.metodo, l.momento, l.nivel, l.porcentaje FROM localizaciones AS l JOIN rutas AS r ON r.id = l.ruta WHERE pokemon = ?").all(req.query.nombre.toUpperCase());
+    const localizaciones = db.prepare(`
+        SELECT r.nombre AS ruta, l.version, l.metodo, l.momento, l.nivel, l.porcentaje
+        FROM localizaciones AS l
+        JOIN rutas AS r
+            ON r.id = l.ruta
+        WHERE pokemon = ?
+        ORDER BY
+            CASE
+                WHEN r.nombre LIKE 'Ruta %' THEN 0
+                ELSE 1
+            END,
+            CASE
+                WHEN r.nombre LIKE 'Ruta %'
+                THEN CAST(SUBSTR(r.nombre, 6) AS INTEGER)
+            END,
+            r.nombre`
+    ).all(req.query.nombre.toUpperCase());
     const encsPrimeraFiltrada = Object.values(
         localizaciones.reduce((acc, item) => {
             const clave = `${item.ruta}-${item.momento}-${item.metodo}-${item.version}`
