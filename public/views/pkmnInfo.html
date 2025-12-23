@@ -1,7 +1,7 @@
 <div>
     <div id="pkmnInfo">
         <div id="imageContainer" class="bordes-pokegear"><img></div>
-        <div id="infoContainer">
+        <div id="infoContainer" class="bordes-pokegear">
             <div>
                 <span id="nombre"></span>
                 <span id="n-pkdx"></span>
@@ -17,50 +17,41 @@
                 </div>
             </div>
         </div>
-        <div id="tableContainer"></div>
+        <div id="tablas">
+            <div data-component="tablaLocsPkmn"></div>
+            <div data-component="imagenSimple" data-pokemon="bulbasaur"></div>
+            <div data-component="tablaSpritesPkmn"></div>
+        </div>
     </div>
 </div>
 
-<script>
-    generarInfo()
+<script type="module">
+    import Components from "./Components.js";
 
+    generarInfo()
+    
     async function generarInfo() {
         const pokemon = params.pokemon
         const pkmnInfCont = shadow.getElementById("pkmnInfo")
 
-        shadow.getElementById("imageContainer").querySelector("img").src = `./resources/img/sprites/${pokemon}.png`
-        shadow.getElementById("nombre").textContent = capitalize(pokemon)
-
-        let res = await fetch(`/api/localizacion?nombre=${pokemon}`)
+        let res = await fetch(`/api/localizacion?nombre=${pokemon}&comprobar=true`)
         let data = await res.json()
 
-        let existenLocs = Object.values(data).some(e => Array.isArray(e) && e.length > 0)
+        const componenteLocs = shadow.querySelector("[data-component='tablaLocsPkmn']")
 
-        if (existenLocs) {
-            shadow.getElementById("tableContainer").innerHTML = `<table>
-                <thead>
-                    <tr>
-                        <th>Ruta</th>
-                        <th>Método</th>
-                        <th>Nivel</th>
-                        <th>Porcentaje</th>
-                        <th colspan="3">Versión</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>`
+        if (!data) {
+            componenteLocs.remove()
+        } else {
+            componenteLocs.dataset.nombre = pokemon
         }
-
-        const tbody = shadow.querySelector("tbody")
-
-        if (data.todo.length > 0) tbody.innerHTML += imprimirEncuentros(data.todo, "todo-dia")
-        if (data.morning.length > 0) tbody.innerHTML += imprimirEncuentros(data.morning, "morning")
-        if (data.day.length > 0) tbody.innerHTML += imprimirEncuentros(data.day, "day")
-        if (data.night.length > 0) tbody.innerHTML += imprimirEncuentros(data.night, "night")
 
         res = await fetch(`/api/pokemon?nombre=${pokemon}`)
         data = await res.json()
 
+        shadow.querySelector("[data-component='tablaSpritesPkmn']").dataset.id = data.n_pkdx.toString().padStart(3, "0")
+        Components.cargarComponentes(shadow)
+        shadow.getElementById("nombre").textContent = capitalize(pokemon)
+        shadow.getElementById("imageContainer").querySelector("img").src = `./resources/img/sprites/general/${data.n_pkdx.toString().padStart(3, "0")}.png`
         shadow.getElementById("n-pkdx").textContent = `#${data.n_pkdx}`
         shadow.getElementById("ratio-captura").textContent = `RC: ${data.ratio_captura}`
         shadow.getElementById("ciclos").textContent = `Ciclos: ${data.ciclos_eclosion}`
@@ -75,7 +66,7 @@
 
             btnAnterior.href = `#pkmnInfo?pokemon=${dataAnt.nombre}`
         }
-        
+
         if (data.n_pkdx >= 251) btnPosterior.parentElement.classList.add("disabled")
         else {
             const resPos = await fetch(`/api/pokemon?n_pkdx=${data.n_pkdx + 1}`)
@@ -88,37 +79,22 @@
     function capitalize(str) {
         return str.charAt(0).toUpperCase() + str.substring(1)
     }
-
-    function imprimirEncuentros(lista, clase) {
-        let texto = ""
-        lista.forEach(e => {
-            let metodosFormateados = ["Hierba alta", "Surf", "Caña vieja", "Caña buena", "Supercaña", "Golpe cabeza ●", "Golpe cabeza ♦"]
-            let metodos = ["walk", "surf", "old_rod", "good_rod", "superrod", "golpe_cabeza_normal", "golpe_cabeza_especial"]
-            if (e.metodo)
-            texto += `<tr class="${clase}">
-                    <td>${e.ruta}</td>
-                    <td>${metodosFormateados[metodos.indexOf(e.metodo)]}</td>
-                    <td>${e.nivel}</td>
-                    <td>${e.porcentaje}%</td>
-                    <td class="${e.version.includes("O") ? "version-o" : "version-off"}">O</td>
-                    <td class="${e.version.includes("P") ? "version-p" : "version-off"}">P</td>
-                    <td class="${e.version.includes("C") ? "version-c" : "version-off"}">C</td>
-                </tr>`
-        })
-        return texto
-    }
 </script>
 
 <link rel="stylesheet" href="./global.css">
 
 <style>
+    div:has(> #pkmnInfo) {
+        background-color: brown;
+    }
+
     #pkmnInfo {
         display: grid;
-        grid-template-columns: auto 1fr;
+        grid-template-columns: auto auto 1fr;
         grid-template-rows: auto 1fr;
-        grid-template-areas: 
-        "imagen info"
-        "lista lista";
+        grid-template-areas:
+            "imagen info info"
+            "tablas tablas tablas";
         gap: 1rem;
         padding: 1rem;
     }
@@ -128,6 +104,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        background-color: white;
     }
 
     #imageContainer img {
@@ -140,6 +117,8 @@
         grid-area: info;
         display: flex;
         flex-direction: column;
+        background-color: white;
+        padding: 1rem;
     }
 
     #nombre {
@@ -151,7 +130,8 @@
         color: gray;
     }
 
-    #ratio-captura, #ciclos {
+    #ratio-captura,
+    #ciclos {
         font-size: 1.3em;
         color: rgb(168, 168, 168);
     }
@@ -191,56 +171,21 @@
         color: black;
     }
 
-    #tableContainer {
-        grid-area: lista;
+    #tablas {
+        grid-area: tablas;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
     }
-
-    table, td, th {
-        border: 1px solid black;
-        border-collapse: collapse;
-    }
-
-    th {
-        background-color: black;
-        color: white;
-        font-weight: normal;
-        text-align: center;
-    }
-
-    th, td {
-        padding: .1rem .3rem;
-    }
-
-    .version-off {
-        background-color: gray;
-        color: white;
-    }
-
-    .version-o {
-        background-color: goldenrod;
-    }
-
-    .version-p {
-        background-color: silver;
-    }
-
-    .version-c {
-        background-color: turquoise;
-    }
-
-    .todo-dia { background-color: lightgreen; }
-    .morning { background-color: lightyellow; }
-    .day { background-color: lightblue; }
-    .night { background-color: lightslategrey; }
 
     @media (max-width: 600px) {
         #pkmnInfo {
-            grid-template-areas: 
-            "imagen"
-            "info"
-            "lista";
+            grid-template-areas:
+                "imagen"
+                "info"
+                "tablas";
             grid-template-columns: 100%;
-            grid-template-rows: auto auto 1fr;
+            grid-template-rows: auto auto auto 1fr;
         }
     }
 </style>

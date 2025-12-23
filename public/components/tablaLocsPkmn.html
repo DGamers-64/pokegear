@@ -1,0 +1,109 @@
+<div id="tableContainer">
+    <div id="tableContainerBorder" class="bordes-pokegear">
+        <table>
+                <thead>
+                    <tr>
+                        <th>Ruta</th>
+                        <th>Método</th>
+                        <th>Nivel</th>
+                        <th>Porcentaje</th>
+                        <th colspan="3">Versión</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+    </div>
+</div>
+
+<link rel="stylesheet" href="./global.css">
+
+<script>
+    generarTabla()
+
+    async function generarTabla() {
+        let res = await fetch(`/api/localizacion?nombre=${props.nombre}`)
+        let data = await res.json()
+    
+        const tbody = shadow.querySelector("tbody")
+    
+        if (data.todo.length > 0) tbody.innerHTML += imprimirEncuentros(data.todo, "todo-dia")
+        if (data.morning.length > 0) tbody.innerHTML += imprimirEncuentros(data.morning, "morning")
+        if (data.day.length > 0) tbody.innerHTML += imprimirEncuentros(data.day, "day")
+        if (data.night.length > 0) tbody.innerHTML += imprimirEncuentros(data.night, "night")
+    }
+
+    function imprimirEncuentros(lista, clase) {
+        let texto = ""
+        lista.forEach(e => {
+            let metodosFormateados = ["Hierba alta", "Surf", "Caña vieja", "Caña buena", "Supercaña", "Golpe cabeza ●", "Golpe cabeza ♦"]
+            let metodos = ["walk", "surf", "old_rod", "good_rod", "superrod", "golpe_cabeza_normal", "golpe_cabeza_especial"]
+            if (e.metodo)
+                texto += `<tr class="${clase}">
+                    <td>${e.ruta}</td>
+                    <td>${metodosFormateados[metodos.indexOf(e.metodo)]}</td>
+                    <td>${e.nivel}</td>
+                    <td>${e.porcentaje}%</td>
+                    <td class="${e.version.includes("O") ? "version-o" : "version-off"}">O</td>
+                    <td class="${e.version.includes("P") ? "version-p" : "version-off"}">P</td>
+                    <td class="${e.version.includes("C") ? "version-c" : "version-off"}">C</td>
+                </tr>`
+        })
+        return texto
+    }
+</script>
+
+<style>
+    #tableContainerBorder {
+        padding: 0;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+
+    th {
+        background-color: black;
+        color: white;
+        font-weight: normal;
+        text-align: center;
+    }
+
+    th,
+    td {
+        border: 1px solid black;
+        padding: .1rem .3rem;
+    }
+
+    .version-off {
+        background-color: gray;
+        color: white;
+    }
+
+    .version-o {
+        background-color: goldenrod;
+    }
+
+    .version-p {
+        background-color: silver;
+    }
+
+    .version-c {
+        background-color: turquoise;
+    }
+
+    .todo-dia {
+        background-color: lightgreen;
+    }
+
+    .morning {
+        background-color: lightyellow;
+    }
+
+    .day {
+        background-color: lightblue;
+    }
+
+    .night {
+        background-color: lightslategrey;
+    }
+</style>

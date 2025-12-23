@@ -2,6 +2,19 @@ import Database from "better-sqlite3";
 
 export default function getLocalizaciones(req, res) {
     const db = new Database("./data/pokemon.sqlite", { readonly: true })
+
+    if (req.query.comprobar === "true") {
+        const existenLocs = db.prepare(`
+            SELECT COUNT(*) AS locs
+            FROM localizaciones AS l
+            JOIN rutas AS r
+                ON r.id = l.ruta
+            WHERE pokemon = ?
+        `).get(req.query.nombre.toUpperCase())
+
+        return res.send(existenLocs.locs > 0)
+    }
+
     const localizaciones = db.prepare(`
         SELECT r.nombre AS ruta, l.version, l.metodo, l.momento, l.nivel, l.porcentaje
         FROM localizaciones AS l

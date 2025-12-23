@@ -1,0 +1,155 @@
+<div id="otrasImagenes">
+    <div id="otrasImagenesBorder" class="bordes-pokegear">
+        <table>
+            <tr class="pc-only">
+                <th colspan="3">Normal</th>
+                <th colspan="3">Shiny</th>
+            </tr>
+
+            <tr class="pc-only">
+                <th>Oro</th>
+                <th>Plata</th>
+                <th>Crystal</th>
+                <th>Oro</th>
+                <th>Plata</th>
+                <th>Crystal</th>
+            </tr>
+
+            <tr class="pc-only">
+                <td class="td-sprite"><img data-sprite="normal-gold"></td>
+                <td class="td-sprite"><img data-sprite="normal-silver"></td>
+                <td class="td-sprite"><img data-sprite="normal-crystal"></td>
+                <td class="td-sprite"><img data-sprite="shiny-gold"></td>
+                <td class="td-sprite"><img data-sprite="shiny-silver"></td>
+                <td class="td-sprite"><img data-sprite="shiny-crystal"></td>
+            </tr>
+
+            <tr class="pc-only">
+                <td class="td-sprite" colspan="2"><img data-sprite="normal-gs-back"></td>
+                <td class="td-sprite"><img data-sprite="normal-crystal-back"></td>
+                <td class="td-sprite" colspan="2"><img data-sprite="shiny-gs-back"></td>
+                <td class="td-sprite"><img data-sprite="shiny-crystal-back"></td>
+            </tr>
+
+            <tr class="mobile-only">
+                <th colspan="3">Normal</th>
+            </tr>
+            <tr class="mobile-only">
+                <th>Oro</th>
+                <th>Plata</th>
+                <th>Crystal</th>
+            </tr>
+            <tr class="mobile-only">
+                <td class="td-sprite"><img data-sprite="normal-gold"></td>
+                <td class="td-sprite"><img data-sprite="normal-silver"></td>
+                <td class="td-sprite"><img data-sprite="normal-crystal"></td>
+            </tr>
+            <tr class="mobile-only">
+                <td class="td-sprite" colspan="2"><img data-sprite="normal-gs-back"></td>
+                <td class="td-sprite"><img data-sprite="normal-crystal-back"></td>
+            </tr>
+
+            <tr class="mobile-only">
+                <th colspan="3">Shiny</th>
+            </tr>
+            <tr class="mobile-only">
+                <th>Oro</th>
+                <th>Plata</th>
+                <th>Crystal</th>
+            </tr>
+            <tr class="mobile-only">
+                <td class="td-sprite"><img data-sprite="shiny-gold"></td>
+                <td class="td-sprite"><img data-sprite="shiny-silver"></td>
+                <td class="td-sprite"><img data-sprite="shiny-crystal"></td>
+            </tr>
+            <tr class="mobile-only">
+                <td class="td-sprite" colspan="2"><img data-sprite="shiny-gs-back"></td>
+                <td class="td-sprite"><img data-sprite="shiny-crystal-back"></td>
+            </tr>
+
+            <tr>
+                <th colspan="6">Artwork</th>
+            </tr>
+            <tr>
+                <td class="td-artwork" colspan="6"><img data-sprite="artwork"></td>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script>
+    const id = props.id
+
+    setSprite(shadow, "normal-gold", `./resources/img/sprites/normal-gold/${id}.png`)
+    setSprite(shadow, "normal-silver", `./resources/img/sprites/normal-silver/${id}.png`)
+    setSprite(shadow, "normal-crystal", `./resources/img/sprites/normal-crystal/${id}.png`)
+
+    setSprite(shadow, "shiny-gold", `./resources/img/sprites/shiny-gold/${id}.png`)
+    setSprite(shadow, "shiny-silver", `./resources/img/sprites/shiny-silver/${id}.png`)
+    setSprite(shadow, "shiny-crystal", `./resources/img/sprites/shiny-crystal/${id}.png`)
+
+    setSprite(shadow, "normal-gs-back", `./resources/img/sprites/normal-gs-back/${id}.png`)
+    setSprite(shadow, "normal-crystal-back", `./resources/img/sprites/normal-crystal-back/${id}.png`)
+
+    setSprite(shadow, "shiny-gs-back", `./resources/img/sprites/shiny-gs-back/${id}.png`)
+    setSprite(shadow, "shiny-crystal-back", `./resources/img/sprites/shiny-crystal-back/${id}.png`)
+
+    setSprite(shadow, "artwork", `./resources/img/artworks/${id}.png`)
+
+    
+    function setSprite(shadow, key, path) {
+        shadow.querySelectorAll(`[data-sprite="${key}"]`).forEach(img => img.src = path)
+    }
+</script>
+
+<link rel="stylesheet" href="./global.css">
+
+<style>
+    #otrasImagenesBorder {
+        background-color: white;
+        padding: 0;
+    }
+
+    .td-sprite {
+        text-align: center;
+    }
+
+    .td-sprite img {
+        width: 112px;
+    }
+
+    .td-artwork {
+        text-align: center;
+    }
+
+    .mobile-only {
+        display: none;
+    }
+
+    table {
+        border-collapse: collapse;
+    }
+
+    th {
+        background-color: black;
+        color: white;
+        font-weight: normal;
+        text-align: center;
+    }
+
+    th,
+    td {
+        border: 1px solid black;
+        padding: .1rem .3rem;
+    }
+
+    @media (max-width: 600px) {
+        .pc-only {
+            display: none;
+        }
+
+        .mobile-only {
+            display: table-row;
+        }
+    }
+</style>
