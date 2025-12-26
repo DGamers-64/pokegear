@@ -19,8 +19,8 @@
         </div>
         <div id="tablas">
             <div data-component="tablaLocsPkmn"></div>
-            <div data-component="imagenSimple" data-pokemon="bulbasaur"></div>
             <div data-component="tablaSpritesPkmn"></div>
+            <div data-component="tablaEvolucionPkmn"></div>
         </div>
     </div>
 </div>
@@ -49,6 +49,7 @@
         data = await res.json()
 
         shadow.querySelector("[data-component='tablaSpritesPkmn']").dataset.id = data.n_pkdx.toString().padStart(3, "0")
+        shadow.querySelector("[data-component='tablaEvolucionPkmn']").dataset.n_pkdx = data.n_pkdx
         Components.cargarComponentes(shadow)
         shadow.getElementById("nombre").textContent = capitalize(pokemon)
         shadow.getElementById("imageContainer").querySelector("img").src = `./resources/img/sprites/general/${data.n_pkdx.toString().padStart(3, "0")}.png`
@@ -85,10 +86,12 @@
 
 <style>
     div:has(> #pkmnInfo) {
+        min-height: 100vh;
         background-color: brown;
     }
 
     #pkmnInfo {
+        height: 100%;
         display: grid;
         grid-template-columns: auto auto 1fr;
         grid-template-rows: auto 1fr;

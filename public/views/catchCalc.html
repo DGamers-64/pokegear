@@ -1,0 +1,115 @@
+<div id="general">
+    <form>
+        Pokémon: <select name="pokemon"></select>
+        Nivel: <input name="nivel" type="number">
+        Current HP: <span><input name="currHP" type="number" min="1" max="100">%</span>
+        Status: <select name="status">
+            <option value="none">None</option>
+            <option value="sleep">Sleep</option>
+        </select>
+        Pokéball: <select name="pokeball">
+            <option value="pokeball">Pokéball</option>
+            <option value="superball">Superball</option>
+            <option value="ultraball">Ultraball</option>
+        </select>
+        <button>Consultar</button>
+    </form>
+    <span id="resultado"></span>
+</div>
+
+<script>
+    prepararCalc()
+
+    async function prepararCalc() {
+        const listaPkmn = await obtenerListaPKMNs()
+        const selectPkmn = shadow.querySelector('[name="pokemon"]')
+        listaPkmn.forEach(pkmn => {
+            selectPkmn.innerHTML += `<option value="${pkmn}">${pkmn}</option>`
+        });
+        
+        const form = shadow.querySelector("form")
+        const resultadoDOM = shadow.getElementById("resultado")
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault()
+    
+            const formData = new FormData(form)
+
+            const res = await fetch(`/api/pokemon?nombre=${formData.get("pokemon")}`)
+            const data = await res.json()
+
+            ////////////////////////////////////////////////
+
+            let DV = 15
+            let hpBase = 45
+            let EV = 0
+            let nivel = Number(formData.get("nivel"))
+
+            let HP = Math.floor(((DV+2*hpBase+(EV/4))*nivel)/100)+nivel+10
+
+            ////////////////////////////////////////////////
+    
+            let C = Number(data.ratio_captura)
+            let M = HP
+            let H = (Number(formData.get("currHP"))/100)*M
+            let S = 0
+            let X = 0
+    
+            if (M * 3> 255) {
+                M = parseInt((M * 3) / 4)
+                H = parseInt((H * 2) / 4)
+            }
+
+            switch (formData.get("pokeball")) {
+                case "pokeball":
+                    C = C * 1
+                    break;
+                
+                case "superball":
+                    C = C * 1.5
+                    break;
+                
+                case "ultraball":
+                    C = C * 2
+                    break;
+            
+                default:
+                    break;
+            }
+    
+            if (C > 255) {
+                C = 255
+            }
+    
+            const status = {none: 0, sleep: 10}
+    
+            S = status[formData.get("status")]
+
+            X = Math.max((((M*3 - H*2) * C) / (M*3)), 1)+S
+    
+            const resultado = (X+1)/256
+    
+            resultadoDOM.textContent = `${Math.floor((resultado * 100) * 1000) / 1000}%`
+        })
+    }
+    
+
+    async function obtenerListaPKMNs() {
+        const res = await fetch("./resources/data/pkmn.json")
+        return await res.json()
+    }
+</script>
+
+<style>
+    #general {
+        padding: 1rem;
+        display: flex;
+        gap: .4rem;
+        flex-direction: column;
+    }
+    
+    form {
+        display: flex;
+        gap: .4rem;
+        flex-direction: column;
+    }
+</style>

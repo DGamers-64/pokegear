@@ -1,0 +1,102 @@
+<div class="bordes-pokegear" id="contenedor">
+</div>
+
+<script>
+    const cachePokemon = {}
+
+    generarEvos()
+
+    async function getPokemon(nombre) {
+        if (cachePokemon[nombre]) return cachePokemon[nombre]
+
+        const res = await fetch(`/api/pokemon?nombre=${nombre}`)
+        const data = await res.json()
+        cachePokemon[nombre] = data
+        return data
+    }
+
+    async function generarEvos() {
+        const res = await fetch(`/api/evolucion?n_pkdx=${props.n_pkdx}`)
+        const data = await res.json()
+
+        const contenedor = shadow.getElementById("contenedor")
+        contenedor.innerHTML = ""
+
+        await renderCadenaLineal(data, contenedor)
+    }
+
+    async function renderCadenaLineal(evos, contenedor) {
+        if (evos.length === 0) return
+
+        let actual = evos[0]
+
+        // pintar el primer Pokémon
+        await pintarPokemon(actual.poke1, contenedor)
+
+        while (actual) {
+            // método
+            pintarMetodo(actual.metodo, contenedor)
+
+            // siguiente Pokémon
+            await pintarPokemon(actual.poke2, contenedor)
+
+            // seguir si es cadena lineal
+            if (actual.evoluciones && actual.evoluciones.length === 1) {
+                actual = actual.evoluciones[0]
+            } else {
+                break
+            }
+        }
+
+        // si hay ramas, se renderizan aparte
+        if (actual?.evoluciones?.length > 1) {
+            const ramas = document.createElement("div")
+            ramas.className = "ramas"
+
+            for (const rama of actual.evoluciones) {
+                const ramaDiv = document.createElement("div")
+                ramaDiv.className = "rama"
+                await renderCadenaLineal([rama], ramaDiv)
+                ramas.appendChild(ramaDiv)
+            }
+
+            contenedor.appendChild(ramas)
+        }
+    }
+
+
+    async function pintarPokemon(nombre, contenedor) {
+        if (!cachePokemon[nombre]) {
+            const res = await fetch(`/api/pokemon?nombre=${nombre}`)
+            cachePokemon[nombre] = await res.json()
+        }
+
+        const p = cachePokemon[nombre]
+
+        contenedor.innerHTML += `
+        <img src="./resources/img/sprites/general/${p.n_pkdx
+                .toString()
+                .padStart(3, "0")}.png">
+    `
+    }
+
+    function pintarMetodo(metodo, contenedor) {
+        contenedor.innerHTML += `
+        <span class="metodo">${metodo}</span>
+    `
+    }
+
+
+</script>
+
+<link rel="stylesheet" href="./global.css">
+
+<style>
+    #contenedor {
+        background-color: white;
+    }
+
+    img {
+        width: 192px;
+    }
+</style>
