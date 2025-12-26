@@ -1,20 +1,58 @@
 <div id="general">
-    <form>
-        Pokémon: <select name="pokemon"></select>
-        Nivel: <input name="nivel" type="number">
-        Current HP: <span><input name="currHP" type="number" min="1" max="100">%</span>
-        Status: <select name="status">
-            <option value="none">None</option>
-            <option value="sleep">Sleep</option>
-        </select>
-        Pokéball: <select name="pokeball">
-            <option value="pokeball">Pokéball</option>
-            <option value="superball">Superball</option>
-            <option value="ultraball">Ultraball</option>
-        </select>
-        <button>Consultar</button>
-    </form>
-    <span id="resultado"></span>
+    <div id="form-info">
+        <form>
+            <img id="sprite-rival" class="sprites bordes-pokegear">
+            <div id="rival">
+                <label class="titulo">Pokémon salvaje</label>
+                <label>Pokémon: <select name="pokemon"></select></label>
+                <label>Nivel: <input name="nivel" type="number" min="1" max="100" value="5"></label>
+                <label>Vida actual: <input name="currHP" type="number" min="1" max="100" value="100"><span>%</span></label>
+                <label>Género:</label>
+                <div class="genero">
+                    <label>Masculino <input checked type="radio" name="genero" value="masc"></label>
+                    <label>Femenino <input type="radio" name="genero" value="fem"></label>
+                    <label>Ninguno <input type="radio" name="genero" value="ninguno"></label>
+                </div>
+                <label>¿Estás pescando? <input type="checkbox" name="pescando"></label>
+                <label>Status: <select name="status">
+                    <option value="nada">Nada</option>
+                    <option value="dormido">Dormido</option>
+                    <option value="congelado">Congelado</option>
+                    <option value="envenenado">Envenenado</option>
+                    <option value="paralizado">Paralizado</option>
+                    <option value="quemado">Quemado</option>
+                </select></label>
+                <label>Ball: <select name="ball">
+                    <option value="pokeball">Poké Ball</option>
+                    <option value="superball">Super Ball</option>
+                    <option value="ultraball">Ultra Ball</option>
+                    <option value="masterball">Master Ball</option>
+                    <option value="fastball">Rapid Ball</option>
+                    <option value="levelball">Nivel Ball</option>
+                    <option value="lureball">Cebo Ball</option>
+                    <option value="heavyball">Peso Ball</option>
+                    <option value="loveball">Amor Ball</option>
+                    <option value="friendball">Amigo Ball</option>
+                    <option value="moonball">Luna Ball</option>
+                    <option value="parkball">Parque Ball</option>
+                </select></label>
+            </div>
+            <img id="sprite-aliado" class="sprites bordes-pokegear">
+            <div id="aliado">
+                <label class="titulo">Pokémon aliado</label>
+                <label>Pokémon: <select name="pokemon-aliado"></select></label>
+                <label>Nivel: <input name="nivel-aliado" type="number" min="1" max="100" value="5"></label>
+                <label>Género:</label>
+                <div class="genero">
+                    <label>Masculino <input checked type="radio" name="genero-aliado" value="masc"></label>
+                    <label>Femenino <input type="radio" name="genero-aliado" value="fem"></label>
+                    <label>Ninguno <input type="radio" name="genero-aliado" value="ninguno"></label>
+                </div>
+            </div>
+        </form>
+        <div id="barra-porcentaje"><div id="barra-verde"></div></div>
+        <span id="resultado-numerico"></span>
+    </div>
 </div>
 
 <script>
@@ -23,75 +61,206 @@
     async function prepararCalc() {
         const listaPkmn = await obtenerListaPKMNs()
         const selectPkmn = shadow.querySelector('[name="pokemon"]')
+        const selectPkmnAliado = shadow.querySelector('[name="pokemon-aliado"]')
         listaPkmn.forEach(pkmn => {
             selectPkmn.innerHTML += `<option value="${pkmn}">${pkmn}</option>`
+            selectPkmnAliado.innerHTML += `<option value="${pkmn}">${pkmn}</option>`
         });
         
         const form = shadow.querySelector("form")
-        const resultadoDOM = shadow.getElementById("resultado")
-        form.addEventListener("submit", async (e) => {
+
+        calcularPorcentaje(form)
+
+        form.addEventListener("input", async (e) => {
             e.preventDefault()
-    
-            const formData = new FormData(form)
-
-            const res = await fetch(`/api/pokemon?nombre=${formData.get("pokemon")}`)
-            const data = await res.json()
-
-            ////////////////////////////////////////////////
-
-            let DV = 15
-            let hpBase = 45
-            let EV = 0
-            let nivel = Number(formData.get("nivel"))
-
-            let HP = Math.floor(((DV+2*hpBase+(EV/4))*nivel)/100)+nivel+10
-
-            ////////////////////////////////////////////////
-    
-            let C = Number(data.ratio_captura)
-            let M = HP
-            let H = (Number(formData.get("currHP"))/100)*M
-            let S = 0
-            let X = 0
-    
-            if (M * 3> 255) {
-                M = parseInt((M * 3) / 4)
-                H = parseInt((H * 2) / 4)
-            }
-
-            switch (formData.get("pokeball")) {
-                case "pokeball":
-                    C = C * 1
-                    break;
-                
-                case "superball":
-                    C = C * 1.5
-                    break;
-                
-                case "ultraball":
-                    C = C * 2
-                    break;
-            
-                default:
-                    break;
-            }
-    
-            if (C > 255) {
-                C = 255
-            }
-    
-            const status = {none: 0, sleep: 10}
-    
-            S = status[formData.get("status")]
-
-            X = Math.max((((M*3 - H*2) * C) / (M*3)), 1)+S
-    
-            const resultado = (X+1)/256
-    
-            resultadoDOM.textContent = `${Math.floor((resultado * 100) * 1000) / 1000}%`
+            calcularPorcentaje(form)
         })
     }
     
+    async function calcularPorcentaje(form) {
+        const formData = new FormData(form)
+        const aliadoDOM = shadow.getElementById("aliado")
+        const imagenAliado = shadow.getElementById("sprite-aliado")
+
+        const res = await fetch(`/api/pokemon?nombre=${formData.get("pokemon")}`)
+        const data = await res.json()
+
+        const resAliado = await fetch(`/api/pokemon?nombre=${formData.get("pokemon-aliado")}`)
+        const dataAliado = await resAliado.json()
+
+        // CALCULAR VIDA BASE DEL POKÉMON
+
+        let hpBase = 45 // TODO: CADA POKÉMON TIENE UNA HP STAT BASE DIFERENTE
+        let EV = 0
+        let nivel = Number(formData.get("nivel"))
+
+        const HPValues = []
+
+        for (let DV = 0; DV <= 15 ; DV++) {
+            HPValues.push(Math.floor(((DV+2*hpBase+(EV/4))*nivel)/100)+nivel+10)
+        }
+
+        // CALCULADORA DE PORCENTAJE DE CAPTURA
+
+        const status = {nada: 0, dormido: 10, congelado: 10, envenenado: 0, paralizado: 0, quemado: 0}
+        
+        let C = Number(data.ratio_captura)
+        let S = status[formData.get("status")]
+
+        const pokeballs = {
+            pokeball: () => {
+                C = C * 1
+            },
+
+            superball: () => {
+                C = C * 1.5
+            },
+
+            ultraball: () => {
+                C = C * 2
+            },
+
+            parkball: () => {
+                C = C * 1.5
+            },
+
+            friendball: () => {
+                C = C * 1
+            },
+
+            fastball: () => {
+                const pkmnFastBall = ['Grimer', 'Tangela','Magnemite']
+                if (pkmnFastBall.includes(formData.get("pokemon"))) {
+                    C = C * 4
+                    return
+                }
+
+                C = C * 1
+            },
+
+            // TODO: CADA POKÉMON DEBE DE GUARDAR SU ALTURA Y PESO
+
+            heavyball: () => {
+                const peso = 3.5 // PLACEHOLDER
+                if (peso >= 409.6) {
+                    C = C + 40
+                    return
+                } else if (peso >= 307.2) {
+                    C = C + 30
+                    return
+                } else if (peso >= 204.8) {
+                    C = C + 20
+                    return
+                } else if (peso >= 102.4) {
+                    C = C * 1
+                    return
+                }
+                C = C - 20
+            },
+
+            levelball: () => {
+                aliadoDOM.style.display = "flex"
+                imagenAliado.style.display = "inline"
+                const nivelRival = Number(formData.get("nivel"))
+                const nivelAliado = Number(formData.get("nivel-aliado"))
+                if (Math.floor(nivelAliado / 4) > nivelRival) {
+                    C = C * 8
+                    return
+                } else if (Math.floor(nivelAliado / 2) > nivelRival) {
+                    C = C * 4
+                    return
+                } else if (nivelAliado > nivelRival) {
+                    C = C * 2
+                    return
+                }
+                C = C * 1
+            },
+
+            loveball: () => {
+                aliadoDOM.style.display = "flex"
+                imagenAliado.style.display = "inline"
+                const pokemonRival = formData.get("pokemon")
+                const pokemonAliado = formData.get("pokemon-aliado")
+                const generoRival = formData.get("genero")
+                const generoAliado = formData.get("genero-aliado")
+                if (pokemonRival == pokemonAliado && generoRival == generoAliado) {
+                    C = C * 8
+                    return
+                }
+                C = C * 1
+            },
+
+            lureball: () => {
+                if (formData.get("pescando")) {
+                    C = C * 3
+                    return
+                }
+
+                C = C * 1
+            },
+
+            moonball: () => {
+                C = C * 1
+            },
+
+            masterball: () => {
+                C = C * 1
+            }
+        }
+
+        const pokeball = formData.get("ball")
+
+        aliadoDOM.style.display = "none"
+        imagenAliado.style.display = "none"
+        pokeballs[pokeball]()
+
+        if (C > 255) {
+            C = 255
+        }
+
+        if (pokeball == "levelball") {
+            mostrarResultado((C+1)/256, data.n_pkdx, dataAliado.n_pkdx)
+            return
+        } else if (pokeball == "masterball") {
+            mostrarResultado(1, data.n_pkdx, dataAliado.n_pkdx)
+            return
+        }
+
+        const resultados = []
+
+        HPValues.forEach(HP => {
+            let M = HP
+            let H = (Number(formData.get("currHP"))/100)*M
+            let M3
+            let H2
+            if (M * 3> 255) {
+                M3 = Math.floor((M * 3) / 4)
+                H2 = Math.floor((H * 2) / 4)
+            } else {
+                M3 = M * 3
+                H2 = H * 2
+            }
+            let X = Math.floor(((M3 - H2) * C) / M3)
+            X = Math.max(X, 1)
+            X += S
+            resultados.push((X+1)/256)
+        })
+
+        mostrarResultado(resultados.reduce((a, b) => a + b) / resultados.length, data.n_pkdx, dataAliado.n_pkdx)
+    }
+
+    function mostrarResultado(resultado, n_pkdx, n_pkdx_aliado) {
+        const resultadoDOM = shadow.getElementById("barra-verde")
+        const resultadoNumero = shadow.getElementById("resultado-numerico")
+        const imagenRival = shadow.getElementById("sprite-rival")
+        imagenRival.src = `./resources/img/sprites/general/${n_pkdx.toString().padStart(3, "0")}.png`
+        const imagenAliado = shadow.getElementById("sprite-aliado")
+        imagenAliado.src = `./resources/img/sprites/general/${n_pkdx_aliado.toString().padStart(3, "0")}.png`
+        const porcentajeFinal = Math.floor((resultado * 100) * 1000) / 1000 > 100 ? 100 : Math.floor((resultado * 100) * 1000) / 1000
+        resultadoDOM.style.display = "block"
+        resultadoDOM.style.width = `${porcentajeFinal}%`
+        resultadoNumero.textContent = `${porcentajeFinal}%`
+    }
 
     async function obtenerListaPKMNs() {
         const res = await fetch("./resources/data/pkmn.json")
@@ -99,17 +268,98 @@
     }
 </script>
 
+<link rel="stylesheet" href="./global.css">
+
 <style>
     #general {
         padding: 1rem;
         display: flex;
-        gap: .4rem;
-        flex-direction: column;
+        gap: 1.5rem;
+        width: 100%;
+        background-color: gainsboro;
     }
-    
-    form {
+
+    #form-info {
+        width: 100%;
         display: flex;
         gap: .4rem;
         flex-direction: column;
+    }
+
+    .titulo {
+        font-size: 1.3em;
+        font-weight: bold;
+    }
+
+    form {
+        display: grid;
+        grid-template-columns: min-content auto;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+        "img-rival rival"
+        "img-aliado aliado";
+        gap: 1rem;
+    }
+
+    #rival {
+        grid-area: rival;
+        margin: .5rem;
+    }
+
+    #sprite-rival {
+        grid-area: img-rival;
+        margin: .5rem;
+    }
+    
+    #rival, .genero {
+        display: flex;
+        gap: .4rem;
+        flex-direction: column;
+    }
+
+    #aliado {
+        margin: .5rem;
+        gap: .4rem;
+        flex-direction: column;
+        display: none;
+        grid-area: aliado
+    }
+
+    .genero {
+        margin-left: 2rem;
+    }
+
+    .sprites {
+        width: 96px;
+        image-rendering: pixelated;
+        background-color: white;
+        margin-right: auto;
+    }
+
+    #sprite-aliado {
+        margin-top: .5rem;
+        display: none;
+        grid-area: img-aliado;
+    }
+
+    #barra-porcentaje {
+        margin-top: 1rem;
+        border: 1px solid black;
+        height: 3rem;
+        background-color: lightcoral;
+    }
+
+    #barra-verde {
+        width: 0;
+        display: none;
+        border-right: 1px solid black;
+        height: 3rem;
+        background-color: lightgreen;
+    }
+
+    @media (max-width: 600px) {
+        #general {
+            flex-direction: column;
+        }
     }
 </style>

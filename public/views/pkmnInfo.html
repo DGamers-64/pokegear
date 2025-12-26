@@ -48,8 +48,18 @@
         res = await fetch(`/api/pokemon?nombre=${pokemon}`)
         data = await res.json()
 
+        const resEvos = await fetch(`/api/evolucion?n_pkdx=${data.n_pkdx}&comprobar=true`)
+        const dataEvos = await resEvos.json()
+
+        const componenteEvos = shadow.querySelector("[data-component='tablaEvolucionPkmn']")
+
+        if (!dataEvos) {
+            componenteEvos.remove()
+        } else {
+            componenteEvos.dataset.n_pkdx = data.n_pkdx
+        }
+
         shadow.querySelector("[data-component='tablaSpritesPkmn']").dataset.id = data.n_pkdx.toString().padStart(3, "0")
-        shadow.querySelector("[data-component='tablaEvolucionPkmn']").dataset.n_pkdx = data.n_pkdx
         Components.cargarComponentes(shadow)
         shadow.getElementById("nombre").textContent = capitalize(pokemon)
         shadow.getElementById("imageContainer").querySelector("img").src = `./resources/img/sprites/general/${data.n_pkdx.toString().padStart(3, "0")}.png`
